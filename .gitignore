@@ -150,3 +150,6 @@ Thumbs.db
 # IDEs
 .vscode/
 .idea/
+
+# Database data (PostgreSQL)
+database/pgdata/
