@@ -1,0 +1,91 @@
+// --- 1. CONFIGURACIÓN (Lo que te faltaba) ---
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// --- 2. TUS MODELOS ---
+
+enum Role {
+  ADMIN
+  STUDENT
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  role      Role     @default(STUDENT)
+  credits   Int      @default(5)
+  isPremium Boolean  @default(false)
+  createdAt DateTime @default(now())
+  
+  uploads   Resource[]    @relation("UserUploads")
+  downloads DownloadLog[]
+}
+
+model AuthCode {
+  id        Int      @id @default(autoincrement())
+  email     String
+  code      String
+  expiresAt DateTime
+}
+
+model Subject {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  slug      String   @unique
+  semester  Int
+  
+  resources Resource[]
+}
+
+enum ResourceType {
+  EXAM
+  HOMEWORK
+  BOOK
+  NOTES
+  OTHER
+}
+
+enum Status {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Resource {
+  id          Int          @id @default(autoincrement())
+  title       String
+  description String?
+  fileUrl     String
+  
+  type        ResourceType @default(OTHER)
+  status      Status       @default(PENDING)
+  
+  year        Int?
+  professor   String?
+  createdAt   DateTime     @default(now())
+
+  subjectId   Int
+  subject     Subject      @relation(fields: [subjectId], references: [id])
+  
+  uploaderId  Int
+  uploader    User         @relation("UserUploads", fields: [uploaderId], references: [id])
+  
+  downloads   DownloadLog[]
+}
+
+model DownloadLog {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  resourceId Int
+  cost       Int
+  downloadedAt DateTime @default(now())
+
+  user       User     @relation(fields: [userId], references: [id])
+  resource   Resource @relation(fields: [resourceId], references: [id])
+}
