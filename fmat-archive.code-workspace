@@ -1,0 +1,39 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "files.exclude": {
+      "**/node_modules": true,
+      "**/.git": true,
+      "**/database/pgdata": true
+    },
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/database/pgdata": true
+    },
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "[prisma]": {
+      "editor.defaultFormatter": "Prisma.prisma"
+    },
+    "typescript.preferences.importModuleSpecifier": "relative",
+    "typescript.tsdk": "frontend/node_modules/typescript/lib",
+    "files.associations": {
+      "*.prisma": "prisma"
+    },
+    "terminal.integrated.defaultProfile.windows": "PowerShell",
+    "npm.packageManager": "npm"
+  },
+  "extensions": {
+    "recommendations": [
+      "prisma.prisma",
+      "ms-azuretools.vscode-docker",
+      "dbaeumer.vscode-eslint",
+      "esbenp.prettier-vscode",
+      "angular.ng-template"
+    ]
+  }
+}

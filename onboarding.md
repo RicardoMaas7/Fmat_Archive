@@ -1,112 +1,98 @@
-# Developer Setup Guide - FMAT Archive
+# Guía de Configuración para Desarrolladores
 
-Sigue esta guía paso a paso para configurar el entorno de desarrollo local. El proyecto utiliza una arquitectura híbrida: Base de datos en Docker, pero Frontend y Backend se ejecutan nativamente en el host para mayor velocidad de desarrollo.
+Esta guía detalla el proceso completo de configuración del entorno de desarrollo. El proyecto utiliza una arquitectura híbrida: base de datos en Docker, frontend y backend ejecutándose nativamente para desarrollo ágil.
 
-## 1. Prerrequisitos de Software
+## 1. Prerrequisitos
 
-Antes de clonar el repositorio, instala las siguientes herramientas en tu sistema operativo:
+### 1.1 Herramientas Requeridas
 
-* **Node.js (LTS Version):** [https://nodejs.org/](https://nodejs.org/)
-    * Verificar instalación: `node -v` (Debe ser v18 o superior)
-    * Verificar npm: `npm -v`
-* **Git:** [https://git-scm.com/](https://git-scm.com/)
-    * Verificar instalación: `git --version`
+**Node.js v20+**: https://nodejs.org/
+- Verificar: `node -v` (debe mostrar v20.x.x o superior)
+- npm: `npm -v`
 
-### 1.1 Configuración de WSL 2 (Solo Windows)
+**Git**: https://git-scm.com/
+- Verificar: `git --version`
 
-**Docker Desktop en Windows requiere WSL 2.** Si no lo tienes instalado, sigue estos pasos:
+**Docker Desktop**: https://www.docker.com/products/docker-desktop/
+- Verificar: `docker --version` y `docker-compose --version`
+- Debe estar ejecutándose antes de iniciar el proyecto
 
-1. **Abrir PowerShell como Administrador** y ejecutar:
-   ```powershell
-   wsl --install
-   ```
-   
-2. **Reiniciar tu computadora** cuando se solicite.
+### 1.2 Configuración WSL 2 (Windows Únicamente)
 
-3. **Después del reinicio**, se abrirá automáticamente una terminal de Ubuntu. Crea tu usuario y contraseña de Linux.
+Docker Desktop requiere WSL 2 en Windows.
 
-4. **Verificar la instalación:**
-   ```powershell
-   wsl --list --verbose
-   ```
-   Debe mostrar una distribución (ej: Ubuntu) con VERSION 2.
+**Instalación:**
+```powershell
+# PowerShell como Administrador
+wsl --install
+```
 
-5. **Si ya tenías WSL 1 instalado**, actualiza a WSL 2:
-   ```powershell
-   wsl --set-default-version 2
-   wsl --set-version Ubuntu 2
-   ```
+**Verificación:**
+```powershell
+wsl --list --verbose
+```
 
-**Recursos adicionales:** [Documentación oficial de Microsoft WSL](https://learn.microsoft.com/es-es/windows/wsl/install)
+Debe mostrar una distribución con VERSION 2.
 
----
+**Actualización desde WSL 1:**
+```powershell
+wsl --set-default-version 2
+wsl --set-version Ubuntu 2
+```
 
-* **Docker Desktop:** [https://www.docker.com/products/docker-desktop/](https://www.docker.com/products/docker-desktop/)
-    * Verificar instalación: `docker --version` y `docker-compose --version`
-    * *Importante:* Asegúrate de que Docker Desktop esté usando WSL 2 como backend (Settings → General → "Use the WSL 2 based engine"). Docker debe estar ejecutándose antes de iniciar el proyecto.
-* **Angular CLI:**
-    * Ejecutar en terminal: `npm install -g @angular/cli`
-    * Verificar instalación: `ng version`
+Documentación: https://learn.microsoft.com/es-es/windows/wsl/install
 
-**Extensiones recomendadas para VS Code:**
-* **Prisma** (Sintaxis y formateo para esquemas de BD).
-* **Docker** (Gestión de contenedores).
-* **ESLint** (Linter para TypeScript/Javascript).
+### 1.3 Extensiones VS Code Recomendadas
 
----
+- Prisma
+- Docker
+- ESLint
+- Angular Language Service
 
 ## 2. Configuración Inicial
 
+**Nota**: Los scripts de setup automatizado (`setup.ps1`, `setup.bat`, `setup.sh`) ejecutan automáticamente los pasos 2.1 a 3.3. Se recomienda el setup manual la primera vez para comprender el proceso.
+
 ### 2.1 Clonar Repositorio
+
 ```bash
 git clone https://github.com/RicardoMaas7/Fmat_Archive.git
 cd Fmat_Archive
 ```
 
+### 2.2 Variables de Entorno
 
+Se requieren archivos `.env` en dos ubicaciones:
+1. Raíz del proyecto (para Docker Compose)
+2. `backend/` (para Prisma Client)
 
-### 2.2 Configuración de Variables de Entorno
-
-El sistema requiere la configuración de variables de entorno en **dos ubicaciones** distintas para garantizar la conexión entre los contenedores y el servicio de backend local.
-
-**Archivos requeridos:**
-1.  `./.env` (Raíz del proyecto - Consumido por Docker Compose).
-2.  `./backend/.env` (Directorio del Backend - Consumido por Prisma Client).
-
-**Instrucciones:**
-Crea **AMBOS** archivos con el **MISMO** contenido. Puedes copiar el primer archivo al segundo:
+**Creación automatizada:**
 
 ```bash
-# Crear archivo en la raíz
-echo 'DB_USER=admin' > .env
-echo 'DB_PASSWORD=root' >> .env
-echo 'DB_NAME=fmat_archive' >> .env
-echo 'DATABASE_URL="postgresql://admin:root@localhost:5432/fmat_archive?schema=public"' >> .env
+# Crear en raíz
+echo DB_USER=admin > .env
+echo DB_PASSWORD=root >> .env
+echo DB_NAME=fmat_archive >> .env
+echo DATABASE_URL="postgresql://admin:root@localhost:5432/fmat_archive?schema=public" >> .env
 
-# Copiar a la carpeta backend
+# Copiar a backend
 cp .env backend/.env
 ```
 
-**O crea manualmente ambos archivos con el siguiente contenido:**
+**Creación manual:**
+
+Contenido para `.env` y `backend/.env`:
 
 ```ini
-# --- Infraestructura (Docker) ---
 DB_USER=admin
 DB_PASSWORD=root
 DB_NAME=fmat_archive
-
-# --- Backend (Prisma ORM) ---
-# Connection String: postgresql://USER:PASSWORD@HOST:PORT/DB?schema=public
-DATABASE_URL="postgresql://admin:root@localhost:5432/fmat_archive?schema=public" 
+DATABASE_URL="postgresql://admin:root@localhost:5432/fmat_archive?schema=public"
 ```
 
-Nota: Estos archivos están excluidos del control de versiones (.gitignore) por seguridad. No los subas al repositorio.
+**Importante**: Archivos `.env` están en `.gitignore` y no deben ser versionados.
 
 ### 2.3 Instalación de Dependencias
-
-Instala las librerías necesarias tanto para el frontend como para el backend.
-
-**Desde la raíz del proyecto (`Fmat_Archive/`), ejecuta:**
 
 ```bash
 # Backend
@@ -117,106 +103,232 @@ npm install
 cd ../frontend
 npm install
 
-# Regresar a raíz
+# Retornar a raíz
 cd ..
 ```
-## 3. Infraestructura y Base de Datos
-Utilizamos Docker Compose para levantar PostgreSQL y Adminer (interfaz visual).
 
-### 3.1 Levantar Servicios
-En la raíz del proyecto, ejecuta:
-```bash 
-docker-compose up -d
-```
-### 3.2 Verificar Estado
+## 3. Base de Datos
 
-Accede a http://localhost:8080 (Adminer).
+### 3.1 Iniciar Contenedores Docker
 
-Sistema: PostgreSQL 
+Verificar que Docker Desktop esté ejecutándose, luego:
 
-Servidor: db
-
-Usuario: admin
-
-Contraseña: root
-
-Base de datos: fmat_archive
-
-Si puedes iniciar sesión, el contenedor de base de datos está operativo.
-
-### 3.3 Sincronizar Schema (Prisma)
-Para crear las tablas definidas en el esquema, ejecuta el push de Prisma:
-```bash 
-cd backend
-npx prisma db push
-```
-Salida esperada: ```Your database is now in sync with your Prisma schema.```
-
-## 4. Flujo de Trabajo Diario
-Para desarrollar, necesitarás tres terminales abiertas en VS Code. **Ejecuta en este orden:**
-
-### Terminal 1: Infraestructura (Primero)
-Mantener el contenedor de base de datos activo.
 ```bash
 docker-compose up -d
 ```
-**Verificar:** `docker ps` debe mostrar contenedores `db` y `adminer` corriendo.
 
-### Terminal 2: Backend (Segundo)
-Ejecuta el servidor Node.js en modo watch.
+Verificar estado:
+```bash
+docker ps
+```
+
+Debe mostrar `fmat_archive_db` y `fmat_archive_adminer` en estado "Up".
+
+### 3.2 Verificar Conexión
+
+Acceder a Adminer: http://localhost:8080
+
+Credenciales:
+
+| Campo | Valor |
+|-------|-------|
+| Sistema | PostgreSQL |
+| Servidor | db |
+| Usuario | admin |
+| Contraseña | root |
+| Base de datos | fmat_archive |
+
+### 3.3 Sincronizar Schema con Prisma
+
+```bash
+cd backend
+npx prisma db push
+```
+
+Salida esperada: "Your database is now in sync with your Prisma schema"
+
+Verificar en Adminer: deben aparecer tablas `User`, `Subject`, `Resource`, etc.
+
+### 3.4 Validación (Opcional)
+
+```bash
+node check-env.js
+```
+
+Verifica prerequisitos, archivos de configuración, dependencias y estado de contenedores.
+
+## 4. Flujo de Trabajo Diario
+
+Requiere tres terminales en VS Code:
+
+### Terminal 1: Base de Datos
+
+```bash
+docker-compose up -d
+```
+
+Verificar: `docker ps` debe mostrar contenedores activos.
+
+### Terminal 2: Backend
 
 ```bash
 cd backend
 npm run dev
 ```
-**Verificar:** Debe mostrar "Server running on port..." sin errores de conexión.
 
-### Terminal 3: Frontend (Tercero)
-Ejecuta la aplicación cliente.
+Salida esperada: "Server running on port 3000"
+Database connected
+```
+
+**Verificar:** No debe mostrar errores de conexión a la base de datos.
+
+### Terminal 3: Frontend
+
+Ejecuta la aplicación Angular en modo desarrollo.
 
 ```bash
 cd frontend
-ng serve
+npm start
 ```
-**Verificar:** Compila sin errores y muestra "Compiled successfully".
 
-La aplicación estará disponible en: http://localhost:4200
+**Salida esperada:**
+```
+Application bundle generation complete. [x.xxx seconds]
+Local: http://localhost:4200/
+```
 
-### Detener servicios al finalizar:
+### Terminal 3: Frontend
+
 ```bash
-# Detener Docker (desde la raíz)
+cd frontend
+npm start
+```
+
+Aplicación disponible en: http://localhost:4200
+
+### Detener Servicios
+
+```bash
+# Docker
 docker-compose down
 
-# Frontend y Backend: Ctrl+C en sus respectivas terminales
+# Backend y Frontend: Ctrl+C en terminales respectivas
 ```
+
 ## 5. Troubleshooting
 
-### Error: `"Port 5432 is already allocated"`
-**Causa:** Tienes una instancia local de PostgreSQL corriendo en tu máquina fuera de Docker.
+### Port 5432 already allocated
 
-**Solución:** Detén el servicio de PostgreSQL de Windows/Mac o cambia el puerto en `docker-compose.yml`.
+**Causa**: PostgreSQL local ejecutándose fuera de Docker
 
-### Error: Connection failed en Prisma
-**Causa:** No copiaste el archivo `.env` a la carpeta `backend/` o el contenedor de Docker no está corriendo.
+**Solución**:
+- Windows: Detener servicio PostgreSQL en services.msc
+- Alternativa: Cambiar puerto en docker-compose.yml y actualizar DATABASE_URL
 
-**Solución:** 
-1. Verifica que Docker esté corriendo: `docker ps`
-2. Verifica que existe `backend/.env` con la variable `DATABASE_URL`
-3. Reinicia el contenedor: `docker-compose restart`
+### Cannot connect to Docker daemon
 
-### Error: `"ng is not recognized"`
-**Causa:** No se instaló Angular CLI globalmente.
+**Causa**: Docker Desktop no está ejecutándose
 
-**Solución:** Ejecuta `npm install -g @angular/cli`
+**Solución**:
+1. Iniciar Docker Desktop
+2. Verificar con `docker ps`
+3. Ejecutar `docker-compose up -d`
 
-### Error: Docker Desktop no está corriendo
-**Causa:** Docker Desktop no se inició o se cerró.
+### Prisma connection failed
 
-**Solución:** Abre Docker Desktop y espera a que aparezca el ícono verde de "running" antes de ejecutar `docker-compose up`.
+**Causa**: Archivo `.env` faltante o contenedores inactivos
+
+**Solución**:
+1. Verificar Docker: `docker ps`
+2. Confirmar existencia de `backend/.env`
+3. Reiniciar contenedores: `docker-compose restart`
+4. Verificar credenciales en Adminer (http://localhost:8080)
 
 ### Error: `npm install` falla con errores de permisos
+
 **Causa:** Problemas de permisos en la carpeta de instalación.
 
-**Solución:** 
-- Windows: Ejecuta la terminal como Administrador
-- Mac/Linux: Evita usar `sudo`, verifica permisos de la carpeta del proyecto
+### npm install fails
+
+**Causa**: Problemas de permisos
+
+**Solución**:
+- Windows: Ejecutar terminal como Administrador
+- Mac/Linux: Evitar sudo, verificar permisos del proyecto
+
+### Database schema desincronizado
+
+**Causa**: Cambios en schema.prisma sin aplicar
+
+**Solución**:
+```bash
+cd backend
+npx prisma db push
+```
+
+### Frontend no compila
+
+**Causa**: Dependencias corruptas o desactualizadas
+
+**Solución**:
+```bash
+cd frontend
+rm -rf node_modules package-lock.json
+npm install
+npm start
+```
+
+## 6. Comandos de Referencia
+
+### Docker
+```bash
+docker-compose up -d              # Iniciar servicios
+docker ps                         # Ver estado
+docker-compose logs -f            # Ver logs en tiempo real
+docker-compose restart db         # Reiniciar servicio específico
+docker-compose down               # Detener servicios
+docker-compose down -v            # Detener y eliminar volúmenes
+```
+
+### Prisma
+```bash
+npx prisma db push                # Sincronizar schema
+npx prisma studio                 # Abrir editor visual
+npx prisma generate               # Regenerar cliente
+npx prisma migrate status         # Estado de migraciones
+```
+
+### Backend
+```bash
+npm run dev                       # Desarrollo (hot-reload)
+npm start                         # Producción
+```
+
+### Frontend
+```bash
+npm start                         # Desarrollo
+npm run build                     # Build de producción
+npm test                          # Tests
+```
+
+## 7. Recursos
+
+- Prisma: https://www.prisma.io/docs
+- Angular: https://angular.dev
+- Docker Compose: https://docs.docker.com/compose/
+- PostgreSQL: https://www.postgresql.org/docs/
+
+## 8. Verificación de Entorno
+
+Consulta [CHECKLIST.md](CHECKLIST.md) para verificación completa.
+
+Verificación rápida:
+- [ ] Node.js v20+ instalado
+- [ ] Docker Desktop ejecutándose
+- [ ] Archivos `.env` en raíz y backend/
+- [ ] Dependencias instaladas
+- [ ] Contenedores activos
+- [ ] Prisma sincronizado
+- [ ] Backend sin errores de conexión
+- [ ] Frontend compilando correctamente
+- [ ] Aplicación accesible en http://localhost:4200
